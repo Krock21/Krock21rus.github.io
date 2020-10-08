@@ -20,7 +20,7 @@
 </body>
 <div>
     <canvas id="canvas"></canvas>
-    <input id="u_refractiveIndex" type="range" min="1" max="10" step="0.0001" value="1.025" style="position:absolute;left:10px;top:10px;width:1600px;">
+    <input id="u_refractiveIndex" type="range" min="1" max="10" step="0.0001" value="3.54" style="position:absolute;left:10px;top:10px;width:1600px;">
 </div>
 <script src="twgl.js/dist/4.x/twgl-full.min.js"></script>
 <script src="resources/m4.js"></script>
@@ -281,7 +281,7 @@ void main() {
             gl, [skyboxVertexShaderSource, skyboxFragmentShaderSource]);
 
         // create sphere
-        const response = await fetch('sphere_high.obj');
+        const response = await fetch('13173_PillarSphere_v1_NEW.obj');
         const text = await response.text();
         const data = parseOBJ(text);
 
