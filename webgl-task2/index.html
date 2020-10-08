@@ -19,7 +19,7 @@
 <body>
 <canvas id="canvas"></canvas>
 </body>
-<label for="u_refractiveIndex">u_refractiveIndex</label><input id="u_refractiveIndex" type="range" min="0.5" max="3" step="0.025" value="1.025">
+<label for="u_refractiveIndex">u_refractiveIndex</label><input id="u_refractiveIndex" type="range" min="1" max="10" step="0.025" value="1.025">
 <div class="close-button close-bottom" style="width: 245px;">Close Controls</div>
 <script src="twgl.js/dist/4.x/twgl-full.min.js"></script>
 <script src="resources/m4.js"></script>
@@ -175,7 +175,7 @@ void main() {
   vec3 reflectedDirection = reflect(eyeToSurfaceDir, worldNormal);
 
   float cosReflection = dot(worldNormal, normalize(reflectedDirection));
-  float cosRefraction = dot(worldNormal, normalize(refractedDirection));
+  float cosRefraction = dot(-worldNormal, normalize(refractedDirection));
 
   float Rs = abs((u_refractiveIndex * cosReflection - 1.0 * cosRefraction) / (u_refractiveIndex * cosReflection + 1.0 * cosRefraction));
   Rs = Rs * Rs;
