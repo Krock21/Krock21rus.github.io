@@ -19,6 +19,8 @@
 <body>
 <canvas id="canvas"></canvas>
 </body>
+<label for="u_refractiveIndex">u_refractiveIndex</label><input id="u_refractiveIndex" type="range" min="0.5" max="3" step="0.025" value="1.025">
+<div class="close-button close-bottom" style="width: 245px;">Close Controls</div>
 <script src="twgl.js/dist/4.x/twgl-full.min.js"></script>
 <script src="resources/m4.js"></script>
 <script>
@@ -159,6 +161,9 @@ uniform samplerCube u_texture;
 // The position of the camera
 uniform vec3 u_worldCameraPosition;
 
+// The refractive index
+uniform float u_refractiveIndex;
+
 // we need to declare an output for the fragment shader
 out vec4 outColor;
 
@@ -166,11 +171,21 @@ void main() {
   vec3 worldNormal = normalize(v_worldNormal);
   vec3 eyeToSurfaceDir = normalize(v_worldPosition - u_worldCameraPosition);
 
-  float refractiveIndex = 1.025;
-  vec3 refractedDirection = refract(eyeToSurfaceDir, worldNormal, 1.0 / refractiveIndex);
-  vec3 direction = reflect(eyeToSurfaceDir, worldNormal);
+  vec3 refractedDirection = refract(eyeToSurfaceDir, worldNormal, 1.0 / u_refractiveIndex);
+  vec3 reflectedDirection = reflect(eyeToSurfaceDir, worldNormal);
 
-  outColor = texture(u_texture, refractedDirection);
+  float cosReflection = dot(worldNormal, normalize(reflectedDirection));
+  float cosRefraction = dot(worldNormal, normalize(refractedDirection));
+
+  float Rs = abs((u_refractiveIndex * cosReflection - 1.0 * cosRefraction) / (u_refractiveIndex * cosReflection + 1.0 * cosRefraction));
+  Rs = Rs * Rs;
+
+  float Rp = abs((u_refractiveIndex * cosRefraction - 1.0 * cosReflection) / (u_refractiveIndex * cosRefraction + 1.0 * cosReflection));
+  Rp = Rp * Rp;
+
+  float Reff = 0.5 * (Rs + Rp);
+
+  outColor = Reff * texture(u_texture, reflectedDirection) + (1.0 - Reff) * texture(u_texture, refractedDirection);
 }
 `;
 
@@ -322,12 +337,15 @@ void main() {
             gl.depthFunc(gl.LESS);  // use the default depth test
             gl.useProgram(envmapProgramInfo.program);
             gl.bindVertexArray(sphereVAO);
+
+            var refIndex = document.querySelector("#u_refractiveIndex");
             twgl.setUniforms(envmapProgramInfo, {
                 u_world: worldMatrix,
                 u_view: viewMatrix,
                 u_projection: projectionMatrix,
                 u_texture: texture,
                 u_worldCameraPosition: cameraPosition,
+                u_refractiveIndex: refIndex.value
             });
             twgl.drawBufferInfo(gl, sphereBufferInfo);
 
