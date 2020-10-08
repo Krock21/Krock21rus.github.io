@@ -17,10 +17,11 @@
     </style>
 </head>
 <body>
-<canvas id="canvas"></canvas>
 </body>
-<label for="u_refractiveIndex">u_refractiveIndex</label><input id="u_refractiveIndex" type="range" min="1" max="10" step="0.025" value="1.025">
-<div class="close-button close-bottom" style="width: 245px;">Close Controls</div>
+<div>
+    <canvas id="canvas"></canvas>
+    <input id="u_refractiveIndex" type="range" min="1" max="10" step="0.0001" value="1.025" style="position:absolute;left:10px;top:10px;width:1600px;">
+</div>
 <script src="twgl.js/dist/4.x/twgl-full.min.js"></script>
 <script src="resources/m4.js"></script>
 <script>
@@ -224,6 +225,51 @@ void main() {
             return;
         }
 
+        const SPEED = 7;
+        var isMouseDown = false;
+        var curX = 0.0;
+        var curY = 0.0;
+        var rotateX = 0.0;
+        var rotateY = 0.0;
+
+        // mouse
+        function mousedown(event) {
+            isMouseDown = true;
+            curX = event.clientX;
+            curY = event.clientY;
+            event.preventDefault();
+        }
+
+        function mousemove(event) {
+            if(isMouseDown) {
+                var diffX = event.clientX - curX;
+                var diffY = event.clientY - curY;
+                rotateX += diffX / canvas.width * SPEED;
+                rotateY += diffY / canvas.height * SPEED;
+                rotateY = Math.min(rotateY, Math.PI / 2 - 0.001);
+                rotateY = Math.max(rotateY, -Math.PI / 2 + 0.001);
+                curX = event.clientX;
+                curY = event.clientY;
+            }
+        }
+
+        function mouseup(event) {
+            isMouseDown = false;
+        }
+
+        canvas.onmousedown = mousedown;
+        canvas.onmousemove = mousemove;
+        document.onmouseup = mouseup;
+
+        var zoomRate = 0.07;
+
+        function zoom(event) {
+            event.preventDefault();
+
+            zoomRate += event.deltaY * -0.01;
+        }
+        canvas.onwheel = zoom;
+
         // Tell the twgl to match position with a_position, n
         // normal with a_normal etc..
         twgl.setAttributePrefix("a_");
@@ -235,7 +281,7 @@ void main() {
             gl, [skyboxVertexShaderSource, skyboxFragmentShaderSource]);
 
         // create sphere
-        const response = await fetch('sphere.obj');
+        const response = await fetch('sphere_high.obj');
         const text = await response.text();
         const data = parseOBJ(text);
 
@@ -310,7 +356,8 @@ void main() {
                 m4.perspective(fieldOfViewRadians, aspect, 1, 2000);
 
             // camera going in circle 2 units from origin looking at origin
-            var cameraPosition = [Math.cos(time * .1) * 2, 0, Math.sin(time * .1) * 2];
+            var YCoef = Math.cos(rotateY);
+            var cameraPosition = [Math.cos(rotateX) * 4 * YCoef, Math.sin(rotateY) * 4, Math.sin(rotateX) * 4 * YCoef];
             var target = [0, 0, 0];
             var up = [0, 1, 0];
             // Compute the camera's matrix using look at.
@@ -320,7 +367,7 @@ void main() {
             var viewMatrix = m4.inverse(cameraMatrix);
 
             // Rotate the cube around the x axis
-            var worldMatrix = m4.scaling(0.1, 0.1, 0.1);
+            var worldMatrix = m4.scaling(zoomRate, zoomRate, zoomRate);
 
             // We only care about direction so remove the translation
             var viewDirectionMatrix = m4.copy(viewMatrix);
