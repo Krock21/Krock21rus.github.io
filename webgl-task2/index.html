@@ -4,7 +4,7 @@
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
-    <title>WebGL2 - load obj - cube</title>
+    <title>WebGL2 - Frensel</title>
     <style>
         body {
             margin: 0;
@@ -281,7 +281,7 @@ void main() {
             gl, [skyboxVertexShaderSource, skyboxFragmentShaderSource]);
 
         // create sphere
-        const response = await fetch('13173_PillarSphere_v1_NEW.obj');
+        const response = await fetch('sphere_high.obj');
         const text = await response.text();
         const data = parseOBJ(text);
 
